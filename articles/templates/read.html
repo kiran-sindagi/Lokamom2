@@ -1,27 +1,206 @@
-{% extends "home_layout.html" %}
+{% extends 'home_layout.html' %}
 {% block content %}
-<div class="flex items-center justify-center min-h-[60vh] pb-10 mt-3">
-    <div class="w-full max-w-3xl bg-white/90 border border-green-200 rounded-xl shadow-lg p-8 backdrop-blur-md">
-        <h1 class="font-extrabold text-3xl md:text-4xl text-center text-green-800 bg-green-100 w-fit mx-auto rounded-lg px-6 py-2 mb-8 shadow">
-            {{ article.title }}
-        </h1>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9; /* slate-100 */
+    }
+    .prose {
+      font-family: 'Merriweather', serif;
+    }
 
-        <div class="prose prose-green max-w-none text-lg text-gray-800 mb-8">
-            {{ article.body|safe }}
-        </div>
+    .book-container {
+      perspective: 2500px;
+      perspective-origin: center;
+    }
 
-        {% if article.question %}
-            <div class="bg-green-50 border-l-4 border-green-400 rounded-lg p-4 mb-6">
-                <p class="text-green-800 font-semibold">Related Question:</p>
-                <p class="text-gray-700">{{ article.question }}</p>
-            </div>
-        {% endif %}
+    .book {
+      position: relative;
+      transform-style: preserve-3d;
+      width: 100%;
+      height: 100%;
+    }
 
-        {% if post %}
-            <a href="{% url 'questions' post.id %}" class="inline-block mt-4 px-5 mb-4 py-2 rounded-lg bg-gradient-to-tr from-green-700 to-green-500 text-white font-bold shadow hover:from-green-800 hover:to-green-600 transition">
-                Go to Forums
-            </a>
-        {% endif %}
+    .page {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: left center;
+      transition: transform 1s ease-in-out, z-index 1s;
+      transform-style: preserve-3d;
+      background-color: white;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .page .front,
+    .page .back {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      padding: 1.5rem;
+      backface-visibility: hidden;
+      overflow-y: auto;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .page .back {
+      transform: rotateY(180deg);
+      background-color: #f8fafc;
+    }
+
+    .page.flipped {
+      transform: rotateY(-180deg);
+      z-index: 1000 !important;
+    }
+  </style>
+<body class="flex items-center justify-center min-h-screen bg-slate-100 p-4">
+
+  <div class="w-full max-w-5xl mx-auto">
+    <!-- The main book container -->
+    <div class="book-container">
+      <div id="book" class="bg-white rounded-lg shadow-2xl h-[85vh] flex flex-col relative">
+        <!-- Pages will be dynamically generated here -->
+        <div id="page-container" class="w-full h-full"></div>
+      </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Footer with Navigation -->
+    <div class="flex-shrink-0 mt-6 flex items-center justify-center space-x-8">
+      <button id="prev-btn" class="px-6 py-3 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">&lt; Prev</button>
+      <div id="page-indicator" class="text-base text-slate-600 font-medium w-32 text-center"></div>
+      <button id="next-btn" class="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">Next &gt;</button>
+    </div>
+  </div>
+
+  <!-- Hidden container for the full, unpaginated article body -->
+  <div id="content-source" class="hidden prose prose-green max-w-none text-lg text-gray-800">
+    <h1>{{ article.title }}</h1>
+    {{ article.body|safe }}
+    {% if article.question %}
+        <div class="bg-green-50 border-l-4 border-green-400 rounded-lg p-4 mb-6">
+            <p class="text-green-800 font-semibold">Related Question:</p>
+            <a href="{% url 'questions' post.id %}" class="text-gray-700">{{ article.question }}</a>
+        </div>
+    {% endif %}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const contentSource = document.getElementById('content-source');
+      const pageContainer = document.getElementById('page-container');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const pageIndicator = document.getElementById('page-indicator');
+
+      let pages = [];
+      let currentPage = 0;
+      let totalFaces = 0; // actual logical pages (front + back)
+
+      function paginate() {
+        pageContainer.innerHTML = '';
+        pages = [];
+        currentPage = 0;
+
+        const content = contentSource.cloneNode(true);
+        const elements = Array.from(content.childNodes);
+        const tempContainer = document.createElement('div');
+        tempContainer.className = 'prose text-lg';
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.visibility = 'hidden';
+        tempContainer.style.height = `${pageContainer.clientHeight}px`; // full height
+        tempContainer.style.width = `${pageContainer.clientWidth - 64}px`;
+        document.body.appendChild(tempContainer);
+
+        let pageContents = [];
+        let tempPage = document.createElement('div');
+
+        while (elements.length > 0) {
+          const el = elements.shift();
+          tempPage.appendChild(el);
+
+          tempContainer.innerHTML = '';
+          tempContainer.appendChild(tempPage.cloneNode(true));
+
+          if (tempContainer.scrollHeight > tempContainer.clientHeight) {
+            el && elements.unshift(el); // put back
+            tempPage.removeChild(el);
+            pageContents.push(tempPage.innerHTML);
+            tempPage = document.createElement('div');
+          }
+        }
+
+        if (tempPage.innerHTML.trim()) {
+          pageContents.push(tempPage.innerHTML);
+        }
+
+        document.body.removeChild(tempContainer);
+
+        for (let i = 0; i < pageContents.length; i += 2) {
+          const page = document.createElement('div');
+          page.classList.add('page');
+          page.style.zIndex = pageContents.length - i;
+
+          const front = document.createElement('div');
+          front.classList.add('front');
+          front.innerHTML = pageContents[i];
+
+          const back = document.createElement('div');
+          back.classList.add('back');
+          if (pageContents[i + 1]) {
+            back.innerHTML = pageContents[i + 1];
+          }
+
+          page.appendChild(front);
+          if (pageContents[i + 1]) page.appendChild(back);
+          pages.push(page);
+          pageContainer.appendChild(page);
+        }
+
+        totalFaces = pageContents.length; // count only actual content faces
+        updateNavigation();
+      }
+
+      function turnNextPage() {
+        if (currentPage >= pages.length) return;
+        pages[currentPage].classList.add('flipped');
+        pages[currentPage].style.zIndex = 1000 + currentPage;
+        currentPage++;
+        updateNavigation();
+      }
+
+      function turnPrevPage() {
+        if (currentPage <= 0) return;
+        currentPage--;
+        pages[currentPage].classList.remove('flipped');
+        pages[currentPage].style.zIndex = pages.length - currentPage;
+        updateNavigation();
+      }
+
+      function updateNavigation() {
+        const logicalCurrent = Math.min(currentPage * 2 + 1, totalFaces);
+        pageIndicator.textContent = `Page ${logicalCurrent} / ${totalFaces}`;
+        prevBtn.disabled = currentPage === 0;
+        nextBtn.disabled = currentPage >= pages.length;
+      }
+
+      prevBtn.addEventListener('click', turnPrevPage);
+      nextBtn.addEventListener('click', turnNextPage);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') turnPrevPage();
+        if (e.key === 'ArrowRight') turnNextPage();
+      });
+
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          paginate();
+        }, 300);
+      });
+
+      paginate();
+    });
+  </script>
+{% endblock content %}
