@@ -34,9 +34,9 @@
         }
         
     </style>
-<div class="flex items-center justify-center min-h-screen bg-slate-100 p-4">
+<div class="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
 
-    <div class="w-full max-w-7xl mx-auto">
+    <div class="w-full mx-auto">
         <!-- The main book container -->
         <div id="book" class="bg-white rounded-lg shadow-2xl h-[70vh] flex flex-col relative overflow-hidden">
             <!-- Pages will be dynamically generated here -->
@@ -50,126 +50,133 @@
             <button id="next-btn" class="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">Next &gt;</button>
         </div>
     </div>
-
-    <!-- Hidden container for the full, unpaginated article body -->
-    <div id="content-source" class="hidden prose prose-green max-w-none text-lg text-gray-800">
-        <h1>{{ article.title }}</h1>
-        {{ article.body|safe }}
-    </div>
 </div>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // --- DOM Elements ---
-        const contentSource = document.getElementById('content-source');
-        const pageContainer = document.getElementById('page-container');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const pageIndicator = document.getElementById('page-indicator');
 
-        // --- State ---
-        let pages = [];
-        let currentPageIndex = 0;
+<!-- Hidden container for the full, unpaginated article body -->
+<div id="content-source" class="hidden prose prose-green max-w-none text-lg text-gray-800">
+    <h1>{{ article.title }}</h1>
+    {{ article.body|safe }}
+</div>
 
-        /**
-         * Paginates the content from the source element into individual page divs.
-         */
-        function paginate() {
-            // Clear previous content
-            pageContainer.innerHTML = '';
-            pages = [];
-            const content = contentSource.cloneNode(true);
-            const elements = Array.from(content.childNodes);
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- DOM Elements ---
+    const contentSource = document.getElementById('content-source');
+    const pageContainer = document.getElementById('page-container');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const pageIndicator = document.getElementById('page-indicator');
+
+    // --- State ---
+    let pages = [];
+    let currentPageIndex = 0;
+
+    /**
+     * Paginates the content from the source element into individual page divs.
+     */
+    function paginate() {
+        // Clear previous content
+        pageContainer.innerHTML = '';
+        pages = [];
+        const content = contentSource.cloneNode(true);
+        const elements = Array.from(content.childNodes);
+        
+        if (elements.length === 0) return;
+
+        // Create a temporary page to measure content height
+        const tempPage = document.createElement('div');
+        tempPage.style.position = 'absolute';
+        tempPage.style.visibility = 'hidden';
+        // Adjust height/width for padding inside the page
+        tempPage.style.height = `${pageContainer.clientHeight - 64}px`; 
+        tempPage.style.width = `${pageContainer.clientWidth - 64}px`;
+        document.body.appendChild(tempPage);
+        
+        while (elements.length > 0) {
+            const pageElement = document.createElement('div');
+            pageElement.classList.add('page');
             
-            if (elements.length === 0) return;
-
-            // Create a temporary page to measure content height
-            const tempPage = document.createElement('div');
-            tempPage.style.position = 'absolute';
-            tempPage.style.visibility = 'hidden';
-            // Adjust height/width for padding inside the page
-            tempPage.style.height = `${pageContainer.clientHeight - 64}px`; 
-            tempPage.style.width = `${pageContainer.clientWidth - 64}px`;
-            document.body.appendChild(tempPage);
-            
+            // Add content to the temporary page until it overflows
             while (elements.length > 0) {
-                const pageElement = document.createElement('div');
-                pageElement.classList.add('page');
-                
-                // Add content to the temporary page until it overflows
-                while (elements.length > 0) {
-                    const el = elements.shift();
-                    tempPage.appendChild(el);
-                    if (tempPage.scrollHeight > tempPage.clientHeight) {
-                        // It overflowed, so push the element back and break
-                        elements.unshift(tempPage.lastChild);
-                        break;
-                    }
+                const el = elements.shift();
+                tempPage.appendChild(el);
+                if (tempPage.scrollHeight > tempPage.clientHeight) {
+                    // It overflowed, so push the element back and break
+                    elements.unshift(tempPage.lastChild);
+                    break;
                 }
-                
-                // Set the real page's content and add it to our collection
-                pageElement.innerHTML = tempPage.innerHTML;
-                pages.push(pageElement);
-                pageContainer.appendChild(pageElement);
-                
-                // Clear the temp page for the next iteration
-                tempPage.innerHTML = '';
             }
             
-            document.body.removeChild(tempPage);
-
-            showPage(0); // Show the first page
-        }
-
-        /**
-         * Displays a specific page by index and updates navigation.
-         * @param {number} index - The index of the page to show.
-         */
-        function showPage(index) {
-            if (index < 0 || index >= pages.length) {
-                return; // Index out of bounds
-            }
+            // Set the real page's content and add it to our collection
+            pageElement.innerHTML = tempPage.innerHTML;
+            pages.push(pageElement);
+            pageContainer.appendChild(pageElement);
             
-            currentPageIndex = index;
-
-            pages.forEach((page, i) => {
-                if (i === currentPageIndex) {
-                    page.classList.add('active');
-                } else {
-                    page.classList.remove('active');
-                }
-            });
-
-            updateNavigation();
+            // Clear the temp page for the next iteration
+            tempPage.innerHTML = '';
         }
         
-        /**
-         * Updates the page indicator and button states.
-         */
-        function updateNavigation() {
+        document.body.removeChild(tempPage);
+
+        showPage(0); // Show the first page
+    }
+
+    /**
+     * Displays a specific page by index and updates navigation.
+     * @param {number} index - The index of the page to show.
+     */
+    function showPage(index) {
+        if (index < 0 || index >= pages.length) {
+            return; // Index out of bounds
+        }
+        
+        currentPageIndex = index;
+
+        pages.forEach((page, i) => {
+            if (i === currentPageIndex) {
+                page.classList.add('active');
+            } else {
+                page.classList.remove('active');
+            }
+        });
+
+        updateNavigation();
+    }
+    
+    /**
+     * Updates the page indicator and button states.
+     */
+    function updateNavigation() {
+        if (pages.length > 0) {
             pageIndicator.textContent = `Page ${currentPageIndex + 1} of ${pages.length}`;
-            prevBtn.disabled = currentPageIndex === 0;
-            nextBtn.disabled = currentPageIndex >= pages.length - 1;
+        } else {
+            pageIndicator.textContent = `Page 1 of 1`;
         }
+        prevBtn.disabled = currentPageIndex === 0;
+        nextBtn.disabled = currentPageIndex >= pages.length - 1;
+    }
 
-        // --- Event Listeners ---
-        prevBtn.addEventListener('click', () => showPage(currentPageIndex - 1));
-        nextBtn.addEventListener('click', () => showPage(currentPageIndex + 1));
+    // --- Event Listeners ---
+    prevBtn.addEventListener('click', () => showPage(currentPageIndex - 1));
+    nextBtn.addEventListener('click', () => showPage(currentPageIndex + 1));
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') prevBtn.click();
-            if (e.key === 'ArrowRight') nextBtn.click();
-        });
-        
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-             clearTimeout(resizeTimeout);
-             resizeTimeout = setTimeout(() => {
-                paginate(); // Re-paginate on resize
-             }, 250);
-        });
-
-        // Initial setup
-        paginate();
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prevBtn.click();
+        if (e.key === 'ArrowRight') nextBtn.click();
     });
+    
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+         clearTimeout(resizeTimeout);
+         resizeTimeout = setTimeout(() => {
+            paginate(); // Re-paginate on resize
+         }, 250);
+    });
+
+    // Initial setup
+    // Use a small delay to ensure layout is calculated before paginating
+    setTimeout(paginate, 50);
+});
 </script>
 {% endblock content %}
+
