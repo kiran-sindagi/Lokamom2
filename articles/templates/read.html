@@ -1,206 +1,192 @@
 {% extends 'home_layout.html' %}
-{% block content %}
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f1f5f9; /* slate-100 */
-    }
-    .prose {
-      font-family: 'Merriweather', serif;
-    }
 
-    .book-container {
-      perspective: 2500px;
-      perspective-origin: center;
-    }
+{% block content %} 
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .prose {
+            font-family: 'Merriweather', serif;
+        }
 
-    .book {
-      position: relative;
-      transform-style: preserve-3d;
-      width: 100%;
-      height: 100%;
-    }
+        /* --- Book Fade Styles --- */
+        #page-container {
+            position: relative;
+        }
 
-    .page {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      transform-origin: left center;
-      transition: transform 1s ease-in-out, z-index 1s;
-      transform-style: preserve-3d;
-      background-color: white;
-      box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
-    }
+        .page {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+            background-color: white;
+            overflow-y: auto;
+        }
+        
+        .page.active {
+            opacity: 1;
+            z-index: 10;
+        }
+        
+    </style>
+<div class="flex items-center justify-center min-h-screen bg-slate-100 p-4">
 
-    .page .front,
-    .page .back {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      padding: 1.5rem;
-      backface-visibility: hidden;
-      overflow-y: auto;
-      -webkit-backface-visibility: hidden;
-    }
-
-    .page .back {
-      transform: rotateY(180deg);
-      background-color: #f8fafc;
-    }
-
-    .page.flipped {
-      transform: rotateY(-180deg);
-      z-index: 1000 !important;
-    }
-  </style>
-<body class="flex items-center justify-center min-h-screen bg-slate-100 p-4">
-
-  <div class="w-full max-w-5xl mx-auto">
-    <!-- The main book container -->
-    <div class="book-container">
-      <div id="book" class="bg-white rounded-lg shadow-2xl h-[85vh] flex flex-col relative">
-        <!-- Pages will be dynamically generated here -->
-        <div id="page-container" class="w-full h-full"></div>
-      </div>
-    </div>
-
-    <!-- Footer with Navigation -->
-    <div class="flex-shrink-0 mt-6 flex items-center justify-center space-x-8">
-      <button id="prev-btn" class="px-6 py-3 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">&lt; Prev</button>
-      <div id="page-indicator" class="text-base text-slate-600 font-medium w-32 text-center"></div>
-      <button id="next-btn" class="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">Next &gt;</button>
-    </div>
-  </div>
-
-  <!-- Hidden container for the full, unpaginated article body -->
-  <div id="content-source" class="hidden prose prose-green max-w-none text-lg text-gray-800">
-    <h1>{{ article.title }}</h1>
-    {{ article.body|safe }}
-    {% if article.question %}
-        <div class="bg-green-50 border-l-4 border-green-400 rounded-lg p-4 mb-6">
-            <p class="text-green-800 font-semibold">Related Question:</p>
-            <a href="{% url 'questions' post.id %}" class="text-gray-700">{{ article.question }}</a>
+    <div class="w-full max-w-5xl mx-auto">
+        <!-- The main book container -->
+        <div id="book" class="bg-white rounded-lg shadow-2xl h-[85vh] flex flex-col relative overflow-hidden">
+            <!-- Pages will be dynamically generated here -->
+            <div id="page-container" class="w-full h-full"></div>
         </div>
-    {% endif %}
-  </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const contentSource = document.getElementById('content-source');
-      const pageContainer = document.getElementById('page-container');
-      const prevBtn = document.getElementById('prev-btn');
-      const nextBtn = document.getElementById('next-btn');
-      const pageIndicator = document.getElementById('page-indicator');
+        <!-- Footer with Navigation -->
+        <div class="flex-shrink-0 mt-6 flex items-center justify-center space-x-8">
+            <button id="prev-btn" class="px-6 py-3 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">&lt; Prev</button>
+            <div id="page-indicator" class="text-base text-slate-600 font-medium w-32 text-center"></div>
+            <button id="next-btn" class="px-6 py-3 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-bold transition disabled:opacity-50 disabled:cursor-not-allowed text-lg">Next &gt;</button>
+        </div>
+    </div>
 
-      let pages = [];
-      let currentPage = 0;
-      let totalFaces = 0; // actual logical pages (front + back)
+    <!-- Hidden container for the full, unpaginated article body -->
+    <div id="content-source" class="hidden prose prose-green max-w-none text-lg text-gray-800">
+        <h1>{{ article.title or 'The Principles of Modern Design' }}</h1>
+        {{ article.body|safe }}
 
-      function paginate() {
-        pageContainer.innerHTML = '';
-        pages = [];
-        currentPage = 0;
+        <!-- MOCK ARTICLE CONTENT FOR DEMONSTRATION -->
+        <p>This is a demonstration of a book-like reading experience with a smooth fade transition effect. The content is dynamically split across pages.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.</p>
+        <h2>A New Chapter</h2>
+        <p>Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam. Proin magna. Sed in lacus ut enim adipiscing aliquet. Nulla venenatis. In pede mi, aliquet sit amet, euismod in, auctor ut, ligula. Aliquam dapibus tincidunt metus. Praesent justo dolor, lobortis quis, lobortis dignissim, pulvinar ac, lorem. Vestibulum sed ante. Donec sagittis euismod purus.</p>
+        <blockquote>"The journey of a thousand miles begins with a single step." - Lao Tzu</blockquote>
+        <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+        <ul>
+            <li>List item one</li>
+            <li>List item two, which might be a bit longer.</li>
+            <li>List item three</li>
+        </ul>
+        <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
+        <h3>Conclusion</h3>
+        <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</p>
+        <!-- END OF MOCK CONTENT -->
+    </div>
+</div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- DOM Elements ---
+        const contentSource = document.getElementById('content-source');
+        const pageContainer = document.getElementById('page-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const pageIndicator = document.getElementById('page-indicator');
 
-        const content = contentSource.cloneNode(true);
-        const elements = Array.from(content.childNodes);
-        const tempContainer = document.createElement('div');
-        tempContainer.className = 'prose text-lg';
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.visibility = 'hidden';
-        tempContainer.style.height = `${pageContainer.clientHeight}px`; // full height
-        tempContainer.style.width = `${pageContainer.clientWidth - 64}px`;
-        document.body.appendChild(tempContainer);
+        // --- State ---
+        let pages = [];
+        let currentPageIndex = 0;
 
-        let pageContents = [];
-        let tempPage = document.createElement('div');
+        /**
+         * Paginates the content from the source element into individual page divs.
+         */
+        function paginate() {
+            // Clear previous content
+            pageContainer.innerHTML = '';
+            pages = [];
+            const content = contentSource.cloneNode(true);
+            const elements = Array.from(content.childNodes);
+            
+            if (elements.length === 0) return;
 
-        while (elements.length > 0) {
-          const el = elements.shift();
-          tempPage.appendChild(el);
+            // Create a temporary page to measure content height
+            const tempPage = document.createElement('div');
+            tempPage.style.position = 'absolute';
+            tempPage.style.visibility = 'hidden';
+            // Adjust height/width for padding inside the page
+            tempPage.style.height = `${pageContainer.clientHeight - 64}px`; 
+            tempPage.style.width = `${pageContainer.clientWidth - 64}px`;
+            document.body.appendChild(tempPage);
+            
+            while (elements.length > 0) {
+                const pageElement = document.createElement('div');
+                pageElement.classList.add('page');
+                
+                // Add content to the temporary page until it overflows
+                while (elements.length > 0) {
+                    const el = elements.shift();
+                    tempPage.appendChild(el);
+                    if (tempPage.scrollHeight > tempPage.clientHeight) {
+                        // It overflowed, so push the element back and break
+                        elements.unshift(tempPage.lastChild);
+                        break;
+                    }
+                }
+                
+                // Set the real page's content and add it to our collection
+                pageElement.innerHTML = tempPage.innerHTML;
+                pages.push(pageElement);
+                pageContainer.appendChild(pageElement);
+                
+                // Clear the temp page for the next iteration
+                tempPage.innerHTML = '';
+            }
+            
+            document.body.removeChild(tempPage);
 
-          tempContainer.innerHTML = '';
-          tempContainer.appendChild(tempPage.cloneNode(true));
-
-          if (tempContainer.scrollHeight > tempContainer.clientHeight) {
-            el && elements.unshift(el); // put back
-            tempPage.removeChild(el);
-            pageContents.push(tempPage.innerHTML);
-            tempPage = document.createElement('div');
-          }
+            showPage(0); // Show the first page
         }
 
-        if (tempPage.innerHTML.trim()) {
-          pageContents.push(tempPage.innerHTML);
+        /**
+         * Displays a specific page by index and updates navigation.
+         * @param {number} index - The index of the page to show.
+         */
+        function showPage(index) {
+            if (index < 0 || index >= pages.length) {
+                return; // Index out of bounds
+            }
+            
+            currentPageIndex = index;
+
+            pages.forEach((page, i) => {
+                if (i === currentPageIndex) {
+                    page.classList.add('active');
+                } else {
+                    page.classList.remove('active');
+                }
+            });
+
+            updateNavigation();
+        }
+        
+        /**
+         * Updates the page indicator and button states.
+         */
+        function updateNavigation() {
+            pageIndicator.textContent = `Page ${currentPageIndex + 1} of ${pages.length}`;
+            prevBtn.disabled = currentPageIndex === 0;
+            nextBtn.disabled = currentPageIndex >= pages.length - 1;
         }
 
-        document.body.removeChild(tempContainer);
+        // --- Event Listeners ---
+        prevBtn.addEventListener('click', () => showPage(currentPageIndex - 1));
+        nextBtn.addEventListener('click', () => showPage(currentPageIndex + 1));
 
-        for (let i = 0; i < pageContents.length; i += 2) {
-          const page = document.createElement('div');
-          page.classList.add('page');
-          page.style.zIndex = pageContents.length - i;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevBtn.click();
+            if (e.key === 'ArrowRight') nextBtn.click();
+        });
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+             clearTimeout(resizeTimeout);
+             resizeTimeout = setTimeout(() => {
+                paginate(); // Re-paginate on resize
+             }, 250);
+        });
 
-          const front = document.createElement('div');
-          front.classList.add('front');
-          front.innerHTML = pageContents[i];
-
-          const back = document.createElement('div');
-          back.classList.add('back');
-          if (pageContents[i + 1]) {
-            back.innerHTML = pageContents[i + 1];
-          }
-
-          page.appendChild(front);
-          if (pageContents[i + 1]) page.appendChild(back);
-          pages.push(page);
-          pageContainer.appendChild(page);
-        }
-
-        totalFaces = pageContents.length; // count only actual content faces
-        updateNavigation();
-      }
-
-      function turnNextPage() {
-        if (currentPage >= pages.length) return;
-        pages[currentPage].classList.add('flipped');
-        pages[currentPage].style.zIndex = 1000 + currentPage;
-        currentPage++;
-        updateNavigation();
-      }
-
-      function turnPrevPage() {
-        if (currentPage <= 0) return;
-        currentPage--;
-        pages[currentPage].classList.remove('flipped');
-        pages[currentPage].style.zIndex = pages.length - currentPage;
-        updateNavigation();
-      }
-
-      function updateNavigation() {
-        const logicalCurrent = Math.min(currentPage * 2 + 1, totalFaces);
-        pageIndicator.textContent = `Page ${logicalCurrent} / ${totalFaces}`;
-        prevBtn.disabled = currentPage === 0;
-        nextBtn.disabled = currentPage >= pages.length;
-      }
-
-      prevBtn.addEventListener('click', turnPrevPage);
-      nextBtn.addEventListener('click', turnNextPage);
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') turnPrevPage();
-        if (e.key === 'ArrowRight') turnNextPage();
-      });
-
-      let resizeTimeout;
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          paginate();
-        }, 300);
-      });
-
-      paginate();
+        // Initial setup
+        paginate();
     });
-  </script>
+    </script>
 {% endblock content %}
