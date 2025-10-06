@@ -26,8 +26,10 @@ SECRET_KEY = config('THE_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('MY_DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ['*', '65.0.68.248',"www.lokamom.com","lokamom.com"]
-SECURE_SSL_REDIRECT = False
+ALLOWED_HOSTS = ['*', '65.0.68.248','13.204.96.229',"www.lokamom.com","lokamom.com"]
+#SECURE_SSL_REDIRECT = True
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -130,12 +132,16 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtpout.secureserver.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
+SERVER_EMAIL = os.environ.get('EMAIL_HOST_USER')
 
+EMAIL_TIMEOUT = 60
+EMAIL_USE_LOCALTIME = True
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
