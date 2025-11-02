@@ -5,6 +5,7 @@ from forums.models import Post
 from django.db.models import Q
 import random
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
 
 class SectionsView(TemplateView):
     template_name = 'sections.html'
@@ -26,8 +27,26 @@ class ArticlesListView(ListView):
 
 def readArticle(request, pk):
     article = get_object_or_404(Articles, pk=pk)
-    allowed_tags = ['b', 'strong', 'i', 'em', 'br', 'p', 'span', 'a', 'big']
-    article.body = bleach.clean(article.body, tags=allowed_tags)
+    allowed_tags = ['b', 'strong', 'i', 'em', 'br', 'p', 'span', 'a', 'big', 'table', 'tr', 'th', 'td', 'hr', 'tbody']
+    allowed_attributes = {
+        '*': ['style', 'class'],
+        'a': ['href', 'title'],
+        'table': ['border', 'cellpadding', 'cellspacing'],
+    }
+    
+    # Create CSS sanitizer
+    css_sanitizer = CSSSanitizer(
+        allowed_css_properties=['border', 'border-collapse', 'padding', 
+                              'margin', 'width', 'text-align', 'background-color']
+    )
+
+    article.body = bleach.clean(
+        article.body, 
+        tags=allowed_tags,
+        attributes=allowed_attributes,
+        css_sanitizer=css_sanitizer
+    )
+    
     try:
         post = Post.objects.get(body=article.question)  # or slug=article.slug
     except Post.DoesNotExist:
@@ -38,26 +57,21 @@ def readArticle(request, pk):
     })
 
 def random_articles():
-    # Get all articles
-    all_articles = Articles.objects.all()
+    # Define the sections
+    sections = [1,2,3,4,5]
     
-    # Convert queryset to list and shuffle
-    articles_list = list(all_articles)
-    section_5 = random.choice(articles_list[0:5])
-    section_4 = random.choice(articles_list[5:10])
-    section_3 = random.choice(articles_list[10:15])
-    section_2 = random.choice(articles_list[15:20])
-    section_1 = random.choice(articles_list[20:25])
-    random_articles = [section_1,section_2,section_3,section_4,section_5]
-    # Prepare articles with truncated body
     articles_data = []
-    for article in random_articles:
-        articles_data.append({
-            'id': article.id,
-            'title': article.title,
-            'preview': article.body[:100] + '...' if len(article.body) > 100 else article.body,
-            'section': article.section
-        })
+    
+    # Get one random article from each section
+    for section in sections:
+        article = Articles.objects.filter(section=section).order_by('?').first()
+        if article:
+            articles_data.append({
+                'id': article.id,
+                'title': article.title,
+                'preview': article.body[:100] + '...' if len(article.body) > 100 else article.body,
+                'section': article.section
+            })
     
     return articles_data
 

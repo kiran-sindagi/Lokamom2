@@ -1,5 +1,5 @@
 from articles.views import random_articles 
-from .forms import ContributeForm
+from .forms import ContributeForm, ContactForm
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
 import os
@@ -83,3 +83,59 @@ def successful(request):
 
 def workCareer(request):
     return render(request, "work_coming_soon.html")
+
+def contact(request):
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            age = form.cleaned_data['age']
+            email = form.cleaned_data['email']
+            reason = form.cleaned_data['reason']
+            
+            # --- 1. Prepare and Send Admin Notification Email ---
+            admin_subject = f"New Contact from {name}"
+            admin_plain_message = (
+                f"You have a new contact request.\n\n"
+                f"--- Details ---\n"
+                f"Name: {name}\n"
+                f"Age: {age}\n"
+                f"Email: {email}\n"
+                f"Reason:\n{reason}"
+            )
+            
+            user_subject = "Your Request has been Received!"
+            user_plain_message = f"Hi {name},\n\nThank you for showing interest. We will contact you shortly.\n Best regards\n Lokamom"
+
+            try:
+                # Send the detailed notification to yourself/admin
+                send_mail(
+                    subject=admin_subject,
+                    message=admin_plain_message,
+                    from_email=os.environ.get('EMAIL_HOST_USER'),
+                    recipient_list=[os.environ.get('RECIEVER')], # Your admin email
+                    fail_silently=False
+                )
+                
+                # Send the confirmation email to the user
+                send_mail(
+                    subject=user_subject,
+                    message=user_plain_message,
+                    from_email=os.environ.get('EMAIL_HOST_USER'),
+                    recipient_list=[email], # The user's email from the form
+                    fail_silently=False
+                )
+
+                # Redirect to a success page after emails are sent
+                return redirect('successful')
+
+            except Exception as e:
+                # If anything goes wrong with email sending, log the error
+                print(f"An error occurred while sending email: {e}")
+                return redirect('failure_page')
+    
+    else:
+        form = ContactForm()
+        
+    return render(request, 'contact.html', {'form': form})

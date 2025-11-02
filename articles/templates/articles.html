@@ -1,61 +1,82 @@
-{% extends "home_layout.html" %} {% block content %}
-{% load static %} 
+{% extends "home_layout.html" %} {% block content %} {% load static %}
 <title>Articles - LokaMom</title>
-<meta name="description" content="Explore articles from LokaMom. A collection of articles on motherhood, career, mental health, and more. Find advice and community support for every stage of your journey.">
-<link rel="canonical" href="https://www.yourwebsite.com/articles/">
+<meta
+  name="description"
+  content="Explore articles from LokaMom. A collection of articles on motherhood, career, mental health, and more. Find advice and community support for every stage of your journey."
+/>
+<link rel="canonical" href="https://www.yourwebsite.com/articles/" />
 
-<meta property="og:title" content="LokaMom Articles">
-<meta property="og:description" content="Explore articles from LokaMom. A collection of articles on motherhood, career, mental health, and more. Find advice and community support for every stage of your journey.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://www.yourwebsite.com/articles/">
-<meta property="og:image" content="{% static 'saree_working1.jpg' %}">
+<meta property="og:title" content="LokaMom Articles" />
+<meta
+  property="og:description"
+  content="Explore articles from LokaMom. A collection of articles on motherhood, career, mental health, and more. Find advice and community support for every stage of your journey."
+/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.yourwebsite.com/articles/" />
+<meta property="og:image" content="{% static 'saree_working1.jpg' %}" />
 
 <script type="application/ld+json">
-{
- "@context": "https://schema.org",
- "@type": "CollectionPage",
- "name": "LokaMom Articles",
- "description": "Explore a wide range of articles on motherhood, career, mental health, and personal growth. Find valuable advice and community support at LokaMom.",
- "url": "https://www.yourwebsite.com/articles/",
- "mainEntity": {
-  "@type": "ItemList",
-  "itemListElement": [
-   {% for article in items %}
-   {
-    "@type": "ListItem",
-    "position": {{ forloop.counter }},
-    "item": {
-     "@type": "Article",
-     "name": "{{ article.title }}",
-     "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'read_article' article.pk %}"
-    }
+  {
+   "@context": "https://schema.org",
+   "@type": "CollectionPage",
+   "name": "LokaMom Articles",
+   "description": "Explore a wide range of articles on motherhood, career, mental health, and personal growth. Find valuable advice and community support at LokaMom.",
+   "url": "https://www.yourwebsite.com/articles/",
+   "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+     {% for article in items %}
+     {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "item": {
+       "@type": "Article",
+       "name": "{{ article.title }}",
+       "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'read_article' article.pk %}"
+      }
+     }
+     {% if not forloop.last %},{% endif %}
+     {% endfor %}
+    ]
    }
-   {% if not forloop.last %},{% endif %}
-   {% endfor %}
-  ]
- }
-}
+  }
 </script>
 
 <div class="max-w-7xl mx-auto py-8">
- <div class="flex gap-10 flex-wrap items-center justify-center">
-  {% for article in items %}
-  <div class="relative group max-w-96 bg-white/80 border border-green-200 rounded-xl shadow-lg p-6 flex flex-col items-center justify-center hover:scale-105 hover:shadow-2xl transition duration-300 backdrop-blur-md min-h-40">
-   <p class="text-lg font-semibold text-green-900 mb-2 text-center break-words">
-    {{ article.title }}
-   </p>
-   <a href="{% url 'read_article' article.pk %}" class="w-full">
-    <div class="absolute inset-0 flex items-center justify-center bg-green-400/20 rounded-xl opacity-0 group-hover:opacity-100 transition duration-300 backdrop-blur-md">
-     <span class="text-green-900 font-bold text-lg">Read now</span>
+  <div class="flex gap-10 flex-wrap items-center justify-center">
+    {% for article in items %}
+    <div
+      class="relative group max-w-96 bg-gradient-to-br from-[#bfe0dd]/10 to-[#acf8f2] border-2 border-green-100 rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center hover:scale-105 hover:shadow-2xl transition duration-300 min-h-48"
+    >
+      <!-- Title content -->
+      <div
+        class="relative z-10 group-hover:opacity-0 transition-opacity duration-300">
+        <p class="text-lg font-serif text-green-800 mb-2 text-center break-words leading-relaxed">
+          {{ article.title }}
+        </p>
+      </div>
+
+      <!-- Hover Effect -->
+      <a
+        href="{% url 'read_article' article.pk %}"
+        class="absolute inset-0 flex items-center justify-center"
+      >
+        <div
+          class="w-full h-full absolute inset-0 bg-green-100/80 backdrop-blur-sm opacity-0 group-hover:opacity-80 transition-all duration-300 rounded-2xl"
+        ></div>
+        <span
+          class="opacity-0 group-hover:opacity-70 transition-opacity duration-300 text-green-800 font-serif text-xl z-10 hover:scale-110 transform transition-transform"
+        >
+          Read Now
+        </span>
+      </a>
     </div>
-   </a>
+    {% empty %}
+    <div class="col-span-full text-center py-16">
+      <h1 class="text-green-800 text-2xl font-bold mb-2">No articles found</h1>
+      <p class="text-gray-500">Check back later for new articles.</p>
+    </div>
+    {% endfor %}
   </div>
-  {% empty %}
-  <div class="col-span-full text-center py-16">
-   <h1 class="text-green-800 text-2xl font-bold mb-2">No articles found</h1>
-   <p class="text-gray-500">Check back later for new articles.</p>
-  </div>
-  {% endfor %}
- </div>
 </div>
 {% endblock content %}

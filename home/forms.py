@@ -16,3 +16,9 @@ class ContributeForm(forms.Form):
         label="Contribute with respect to: "
     )
     elaborate = forms.CharField(max_length=500, label="Please elaborate", required=False)
+
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=100, label="Your Name")
+    age = forms.IntegerField(label="Age")
+    email = forms.EmailField(label="Email ID")
+    reason = forms.CharField(max_length=500, label="Reason for contacting", required=False)

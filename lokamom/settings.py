@@ -26,7 +26,7 @@ SECRET_KEY = config('THE_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('MY_DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ['*', '65.0.68.248','13.204.96.229',"www.lokamom.com","lokamom.com"]
+ALLOWED_HOSTS = ['*','64.227.151.232',"www.lokamom.com","lokamom.com"]
 #SECURE_SSL_REDIRECT = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'home',
     'articles',
     'spotlight',
-    'session'
+    'session',
+    'work_career'
 ]
 
 TAILWIND_APP_NAME = 'theme'

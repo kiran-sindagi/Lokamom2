@@ -7,14 +7,14 @@ class OneToOneForm(forms.Form):
     name = forms.CharField(max_length=100, label="Your Name")
     age = forms.IntegerField(label="Age")
     email = forms.EmailField(label="Email ID")
-    phone_number = forms.CharField(max_length=15, label="Phone Number")
+    phone_number = forms.CharField(max_length=10, label="Phone Number")
     concern = forms.CharField(widget=forms.Textarea, label="Your Concern")
 
 class groupSessionForm(forms.Form):
     name = forms.CharField(max_length=100, label="Your Name")
     age = forms.IntegerField(label="Age")
     email = forms.EmailField(label="Email ID")
-    phone_number = forms.CharField(max_length=15, label="Phone Number")
+    phone_number = forms.CharField(max_length=10, label="Phone Number")
     number_of_people = forms.IntegerField(label="Number of people")  
     CHOICES = [
         ('parenting', 'Parenting'),
@@ -34,7 +34,7 @@ class stressManagementForm(forms.Form):
     name = forms.CharField(max_length=100, label="Your Name")
     age = forms.IntegerField(label="Age")
     email = forms.EmailField(label="Email ID")
-    phone_number = forms.CharField(max_length=15, label="Phone Number")
+    phone_number = forms.CharField(max_length=10, label="Phone Number")
     number_of_people = forms.IntegerField(label="Number of people")
     today_str = datetime.date.today().strftime('%Y-%m-%d')
 

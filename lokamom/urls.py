@@ -32,6 +32,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('womenInSpotlight/', include('spotlight.urls')),
     path('sessions/',include('session.urls')),
+    path('work-career', include('work_career.urls'))
 ] 
 
 if settings.DEBUG:
