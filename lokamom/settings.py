@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'articles',
     'spotlight',
     'session',
-    'work_career'
+    'work_career',
+    'visits'
 ]
 
 TAILWIND_APP_NAME = 'theme'
@@ -68,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'visits.middleware.VisitTrackingMiddleware',
 ]
 
 ROOT_URLCONF = 'lokamom.urls'
@@ -116,9 +118,6 @@ DATABASES = {
         }
     }
 }
-
-
-
 
 # Add caching
 CACHES = {
