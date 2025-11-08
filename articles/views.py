@@ -27,7 +27,7 @@ class ArticlesListView(ListView):
 
 def readArticle(request, pk):
     article = get_object_or_404(Articles, pk=pk)
-    allowed_tags = ['b', 'strong', 'i', 'em', 'br', 'p', 'span', 'a', 'big', 'table', 'tr', 'th', 'td', 'hr', 'tbody']
+    allowed_tags = ['b', 'strong', 'i', 'em', 'br', 'p', 'span', 'a', 'big', 'table', 'tr', 'th', 'td', 'hr', 'tbody','a']
     allowed_attributes = {
         '*': ['style', 'class'],
         'a': ['href', 'title'],
