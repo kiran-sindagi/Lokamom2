@@ -26,7 +26,7 @@ SECRET_KEY = config('THE_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('MY_DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ['*','64.227.151.232',"www.lokamom.com","lokamom.com"]
+ALLOWED_HOSTS = ['*','0.0.0.0','68.183.86.7',"www.lokamom.com","lokamom.com"]
 #SECURE_SSL_REDIRECT = True
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -176,9 +176,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
