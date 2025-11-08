@@ -1,0 +1,16 @@
+THE_SECRET_KEY='django-insecure-jvmz3qtypiu68-sy#cj7sl54)34rc_(qtwcg(*bno@b366t%t4'
+
+MY_DEBUG=True
+
+DB_NAME = 'lokamom'
+DB_USER = 'djangouser'
+DB_PASSWORD = 'SHREESHAs.93'
+DB_HOST = 'localhost'
+DB_PORT = '3306'
+
+MY_WHATSAPP_PHONE = '+916366343547'
+
+EMAIL_HOST_USER = 'info@lokamom.com'
+EMAIL_HOST_PASSWORD = 'SHREESHAs.93'
+
+RECIEVER = 'swati.shahane@gmail.com'
