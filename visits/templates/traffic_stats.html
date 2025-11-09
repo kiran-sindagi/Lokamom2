@@ -1,0 +1,25 @@
+<div class="module">
+  <h2>Real Human Traffic Analysis</h2>
+  <table>
+    <tr>
+      <th>Metric</th>
+      <th>Count</th>
+    </tr>
+    <tr>
+      <td>Total Human Visits</td>
+      <td>{{ human_stats.total_human_visits }}</td>
+    </tr>
+    <tr>
+      <td>Unique Human Visitors</td>
+      <td>{{ human_stats.unique_human_visitors }}</td>
+    </tr>
+    <tr>
+      <td>Bot Visits</td>
+      <td>{{ human_stats.bot_visits }}</td>
+    </tr>
+    <tr>
+      <td>Human Traffic Percentage</td>
+      <td>{{ human_stats.human_percentage|floatformat:1 }}%</td>
+    </tr>
+  </table>
+</div>

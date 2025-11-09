@@ -130,17 +130,61 @@ class AnalyticsAdmin(admin.AdminSite):
             'has_permission': True,
         })
         
+        # Add human visitor calculations
+        human_visitors = Visit.objects.exclude(
+            user_agent__isnull=True
+        ).exclude(
+            user_agent__exact=''
+        ).filter(
+            timestamp__gte=last_30_days
+        )
+        
+        # Filter out bots
+        human_count = 0
+        bot_count = 0
+        unique_human_ips = set()
+        
+        for visit in human_visitors:
+            if not is_bot(visit.user_agent):
+                human_count += 1
+                if visit.ip_address:
+                    unique_human_ips.add(visit.ip_address)
+            else:
+                bot_count += 1
+        
+        # Add to context
+        context.update({
+            'human_stats': {
+                'total_human_visits': human_count,
+                'unique_human_visitors': len(unique_human_ips),
+                'bot_visits': bot_count,
+                'human_percentage': (human_count / (human_count + bot_count) * 100) if (human_count + bot_count) > 0 else 0
+            }
+        })
+        
         # Render a custom template (which we will define next)
-        return render(request, 'admin/visits/traffic_stats.html', context)
+        return render(request, 'traffic_stats.html', context)
 
 # Initialize the custom admin site (optional, for advanced dashboard view)
-# analytics_admin_site = AnalyticsAdmin(name='analytics_admin')
+analytics_admin_site = AnalyticsAdmin(name='analytics_admin')
 
 # If you use the custom admin site, remember to register models to it
-# analytics_admin_site.register(Visit, VisitAdmin)
-# analytics_admin_site.register(UniqueVisitor, UniqueVisitorAdmin)
+analytics_admin_site.register(Visit, VisitAdmin)
+analytics_admin_site.register(UniqueVisitor, UniqueVisitorAdmin)
 
 # To use the custom view within the standard admin, we can modify the default admin index
 # NOTE: For simplicity, let's stick to using the default admin site and displaying the raw data tables. 
 # Creating a custom AdminSite requires changes in project urls.py, which is outside the app's scope.
 # The user can already see the visit counts via the registered models (VisitAdmin, UniqueVisitorAdmin).
+
+def is_bot(user_agent):
+    bot_strings = [
+        'bot', 'crawler', 'spider', 'ping', 'lighthouse',
+        'slurp', 'search', 'webmaster', 'python', 'monitor',
+        'apache', 'php', 'wordpress', 'compatible;', 'archive',
+        'curl', 'wget', 'facebook', 'whatsapp'
+    ]
+    if not user_agent:
+        return True
+    user_agent = user_agent.lower()
+    return any(bot in user_agent for bot in bot_strings)
