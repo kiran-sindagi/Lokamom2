@@ -18,42 +18,35 @@ class VisitTrackingMiddleware:
         ]
         
     def __call__(self, request):
-        
-        # 1. Skip logging for ignored paths or requests without a session
+        # 1. Skip logging for ignored paths
         path = request.path
-        if any(path.startswith(p) for p in self.IGNORED_PATHS) or not hasattr(request, 'session'):
+        if any(path.startswith(p) for p in self.IGNORED_PATHS):
             return self.get_response(request)
 
-        # Ensure the session key is created if it's new
-        if not request.session.session_key:
-            request.session.create()
-            
-        session_key = request.session.session_key
         user = request.user if request.user.is_authenticated else None
+        ip_address = self._get_client_ip(request)
         
-        # 2. Check if a visit was already logged in the last minute (to avoid logging every internal page load)
-        # This is a common method to count "Page Views" versus "Visits"
+        # 2. Check if a visit was already logged in the last minute
         one_minute_ago = datetime.now() - timedelta(minutes=1)
         
-        # Filter logic: Check if this user/session has visited this path recently
+        # Filter logic: Check if this IP address has visited this path recently
         if user:
             recent_visits = Visit.objects.filter(user=user, path=path, timestamp__gte=one_minute_ago).exists()
         else:
-            recent_visits = Visit.objects.filter(session_key=session_key, path=path, timestamp__gte=one_minute_ago).exists()
+            recent_visits = Visit.objects.filter(ip_address=ip_address, path=path, timestamp__gte=one_minute_ago).exists()
             
-        
         if not recent_visits:
             # 3. Log the new visit
             Visit.objects.create(
                 user=user,
-                session_key=session_key,
+                session_key=request.session.session_key if hasattr(request, 'session') else None,
                 path=request.path,
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                ip_address=self._get_client_ip(request)
+                ip_address=ip_address
             )
             
             # 4. Update or create the UniqueVisitor record
-            self._update_unique_visitor(user, session_key)
+            self._update_unique_visitor(user, ip_address)
 
         response = self.get_response(request)
         return response
@@ -69,19 +62,19 @@ class VisitTrackingMiddleware:
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
-    def _update_unique_visitor(self, user, session_key):
-        """Updates the last_visit time for a unique visitor."""
+    def _update_unique_visitor(self, user, ip_address):
+        """Updates the last_visit time for a unique visitor based on IP."""
         try:
             if user:
                 # Visitor is authenticated
                 obj, created = UniqueVisitor.objects.get_or_create(
                     user=user,
-                    defaults={'session_key': session_key}
+                    defaults={'ip_address': ip_address}
                 )
             else:
                 # Visitor is anonymous
                 obj, created = UniqueVisitor.objects.get_or_create(
-                    session_key=session_key,
+                    ip_address=ip_address,
                     defaults={'user': None}
                 )
 
@@ -90,5 +83,4 @@ class VisitTrackingMiddleware:
                 obj.save(update_fields=['last_visit'])
 
         except Exception as e:
-            # Log the exception for debugging
             print(f"Error updating UniqueVisitor: {e}")

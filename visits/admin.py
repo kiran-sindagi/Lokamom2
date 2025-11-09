@@ -47,11 +47,11 @@ class VisitAdmin(admin.ModelAdmin):
 
 @admin.register(UniqueVisitor)
 class UniqueVisitorAdmin(admin.ModelAdmin):
-    list_display = ('user', 'session_key', 'first_visit', 'last_visit')
+    list_display = ('user', 'ip_address', 'first_visit', 'last_visit')
     list_filter = ('first_visit', 'last_visit')
-    search_fields = ('user__username', 'session_key')
+    search_fields = ('user__username', 'ip_address')
     date_hierarchy = 'last_visit'
-    readonly_fields = ('user', 'session_key', 'first_visit', 'last_visit')
+    readonly_fields = ('user', 'ip_address', 'first_visit', 'last_visit')
     
     def has_add_permission(self, request):
         return False

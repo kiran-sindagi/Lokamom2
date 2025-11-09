@@ -48,10 +48,9 @@ class Visit(models.Model):
 # Optional: Model to store aggregated data (e.g., daily unique visitors)
 class UniqueVisitor(models.Model):
     """
-    Keeps track of unique visitors by session key or user ID.
-    This is useful for accurate counting.
+    Keeps track of unique visitors by IP address or user ID.
     """
-    session_key = models.CharField(max_length=40, unique=True, db_index=True, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(unique=True, db_index=True, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, unique=True)
     first_visit = models.DateTimeField(auto_now_add=True)
     last_visit = models.DateTimeField(auto_now_add=True)
@@ -61,4 +60,4 @@ class UniqueVisitor(models.Model):
         verbose_name_plural = "Unique Visitors"
         
     def __str__(self):
-        return self.user.username if self.user else f"Anon ({self.session_key[:8]})"
+        return self.user.username if self.user else f"IP: {self.ip_address}"
