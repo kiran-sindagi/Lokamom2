@@ -63,6 +63,35 @@
         .text-shadow {
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
         }
+        /* Make tables responsive inside article body */
+        .prose table {
+            width: 100% !important;
+            display: block;              /* allow horizontal scroll */
+            overflow-x: auto;            /* enable scroll */
+            border-collapse: collapse !important;
+        }
+
+        /* Prevent the table from stretching the screen */
+        .prose table thead,
+        .prose table tbody,
+        .prose table tr {
+            width: 100%;
+            display: table;
+            table-layout: fixed;         /* cells shrink properly */
+        }
+
+        /* Ensure long content wraps instead of expanding container */
+        .prose table td,
+        .prose table th {
+            word-wrap: break-word !important;
+            white-space: normal !important;
+        }
+
+        /* Optional: make scroll area visible on mobile */
+        .prose table::-webkit-scrollbar {
+            height: 6px;
+        }
+
     </style>
 </head>
 <!-- Use flexbox to manage the layout of header and main content -->
